@@ -1,25 +1,14 @@
+from Sample import Sample
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 import re
 
-class Sample2:
-    
-    # driverpath=各種Webドライバーexeのフルパス
-    def __init__(self, driverpath):
-        # ドライバーパスを指定 
-        self.driver = webdriver.Chrome(driverpath)
-
-    #左側のでかいクッキー連打
-    def bigCookieClick(self):
-        try :
-            # cookieボタン見つけてクリックさせる
-            element = self.driver.find_element_by_id("bigCookie")
-            element.click()
-        except Exception as e :
-            print(e)
-    #お店をクリックする
+class Sample2(Sample):   
+    #お店をクリックする（100回以下は無視)
     def upgradsClick(self):
+        if self.loopCount < 100:
+            return
         try:
             #<div onclick="Game.UpgradesById[56].click(event);" 
             # Game.tooltip.wobble();}" id="upgrade1" style="background-position:-528px -144px;"></div>
@@ -28,9 +17,12 @@ class Sample2:
                 element.click()              
         except Exception as e :
             print("productClick:"+ str(e))  
-    #施設をクリックする
+    
+    #施設をクリックする（100回以下は無視)
     def productClick(self) :
-        for var in reversed(range(0,20)):
+        if self.loopCount < 100:
+            return
+        for var in reversed(range(0,20)):           
             try:
                 #要素の検証したらIDがproduct+連番だった。
                 #<div class="product unlocked enabled" onmouseout="Game.tooltip.shouldHide=1;
@@ -39,20 +31,28 @@ class Sample2:
                     element = self.driver.find_element_by_id("product" + str(var))
                     element.click()
             except Exception as e :
-                print("productClick:"+ str(e))
+                print(e)
 
-    def exec(self):
-        # URLに移動
-        self.driver.get("http://natto0wtr.web.fc2.com/CookieClicker/")
-        clickcount = 0
-        while True :
-            self.bigCookieClick()
-            if clickcount > 100:
-                #効率悪いから強化はとりあえず100回に1回
-                clickcount = 0
-                self.upgradsClick()
-                self.productClick()
-            clickcount = clickcount + 1
-            
-            
+    # ループのカウンタを定義して初期化
+    def initLoopCount(self):
+        self.loopCount = 0
 
+    # ループカウンタを加算。100を超えてる場合は戻す
+    def addLoopCount(self):
+        if (self.loopCount < 100) :
+            self.loopCount = self.loopCount + 1
+        else:
+            self.loopCount = 0
+    #メソッドリストにぶち込む
+    def getBeforeExecFunctions(self):
+        super().getBeforeExecFunctions()
+        self.beforeExecFunctions.append(self.initLoopCount)
+
+    def getDoExecFunctions(self):
+        super().getDoExecFunctions()
+        self.doExecFunctions.append(self.upgradsClick) 
+        self.doExecFunctions.append(self.productClick)
+
+    def getAfterDoExecFunctions(self):
+        super().getAfterDoExecFunctions()
+        self.afterDoExecFunctions.append(self.addLoopCount)
