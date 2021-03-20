@@ -16,7 +16,7 @@ future==0.18.1
 importlib-metadata==0.23
 isort==4.3.15
 itsdangerous==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 jmespath==0.9.4
 jsonpatch==1.24
 jsonpointer==2.0
